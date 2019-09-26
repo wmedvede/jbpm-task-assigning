@@ -1,4 +1,4 @@
-package org.jbpm.services.task.assigning.solver;
+package org.jbpm.services.task.assigning;
 
 import java.io.File;
 import java.io.IOException;

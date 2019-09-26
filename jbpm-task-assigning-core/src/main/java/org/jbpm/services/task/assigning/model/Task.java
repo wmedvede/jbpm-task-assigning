@@ -130,6 +130,11 @@ public class Task extends TaskOrUser {
     private Integer startTime; // In minutes
 
     /**
+     * Assume a duration of 1 minute for all tasks
+     */
+    private int duration = 1;
+
+    /**
      * This declaration basically indicates that the endTime is actually calculated as part of the startTime shadow
      * variable calculation.
      */
@@ -226,11 +231,12 @@ public class Task extends TaskOrUser {
         this.endTime = endTime;
     }
 
-    /**
-     * Assume a duration of 1 minute for all tasks
-     */
     public int getDuration() {
-        return 1;
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
     }
 
     @Override

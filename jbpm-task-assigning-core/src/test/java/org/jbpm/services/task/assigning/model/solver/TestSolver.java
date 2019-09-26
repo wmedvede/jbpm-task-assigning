@@ -1,7 +1,8 @@
-package org.jbpm.services.task.assigning.solver;
+package org.jbpm.services.task.assigning.model.solver;
 
 import java.util.List;
 
+import org.jbpm.services.task.assigning.BaseTaskAssigningTest;
 import org.jbpm.services.task.assigning.model.Task;
 import org.jbpm.services.task.assigning.model.TaskAssigningSolution;
 import org.jbpm.services.task.assigning.model.User;
@@ -37,7 +38,7 @@ public class TestSolver extends BaseTaskAssigningTest {
 
     @Test
     public void startSolverAndSolution500Tasks5UsersTest() throws Exception {
-        testSolverStartAndSolution(MILLISECONDS_TIME_SPENT_LIMIT, _500TASKS_20USERS_SOLUTION);
+        testSolverStartAndSolution(MILLISECONDS_TIME_SPENT_LIMIT * 2, _500TASKS_20USERS_SOLUTION);
     }
 
     /**

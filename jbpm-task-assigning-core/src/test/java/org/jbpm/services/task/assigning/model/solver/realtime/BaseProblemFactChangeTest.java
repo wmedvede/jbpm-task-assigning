@@ -1,4 +1,4 @@
-package org.jbpm.services.task.assigning.solver.realtime;
+package org.jbpm.services.task.assigning.model.solver.realtime;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,7 +8,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 import org.jbpm.services.task.assigning.model.TaskAssigningSolution;
-import org.jbpm.services.task.assigning.solver.BaseTaskAssigningTest;
+import org.jbpm.services.task.assigning.BaseTaskAssigningTest;
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
 import org.optaplanner.core.api.solver.Solver;

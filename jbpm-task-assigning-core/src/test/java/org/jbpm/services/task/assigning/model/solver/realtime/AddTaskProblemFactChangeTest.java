@@ -1,4 +1,4 @@
-package org.jbpm.services.task.assigning.solver.realtime;
+package org.jbpm.services.task.assigning.model.solver.realtime;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 import org.jbpm.services.task.assigning.model.Task;
 import org.jbpm.services.task.assigning.model.TaskAssigningSolution;
 import org.jbpm.services.task.assigning.model.User;
-import org.jbpm.services.task.assigning.model.solver.realtime.AddTaskProblemFactChange;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;

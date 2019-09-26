@@ -1,4 +1,4 @@
-package org.jbpm.services.task.assigning.solver.realtime;
+package org.jbpm.services.task.assigning.model.solver.realtime;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,7 +15,6 @@ import org.jbpm.services.task.assigning.model.Task;
 import org.jbpm.services.task.assigning.model.TaskAssigningSolution;
 import org.jbpm.services.task.assigning.model.TaskOrUser;
 import org.jbpm.services.task.assigning.model.User;
-import org.jbpm.services.task.assigning.model.solver.realtime.AssignTaskProblemFactChange;
 import org.junit.Test;
 import org.optaplanner.core.impl.score.director.ScoreDirector;
 
