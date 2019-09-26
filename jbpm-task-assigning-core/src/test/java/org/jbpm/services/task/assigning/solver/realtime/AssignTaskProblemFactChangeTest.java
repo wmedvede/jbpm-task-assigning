@@ -16,19 +16,17 @@ import org.jbpm.services.task.assigning.model.TaskAssigningSolution;
 import org.jbpm.services.task.assigning.model.TaskOrUser;
 import org.jbpm.services.task.assigning.model.User;
 import org.jbpm.services.task.assigning.model.solver.realtime.AssignTaskProblemFactChange;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.optaplanner.core.impl.score.director.ScoreDirector;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-public class AssignTaskProblemFactChangeTest extends BaseProblemFactChangeTest<AssignTaskProblemFactChange> {
+public class AssignTaskProblemFactChangeTest extends BaseProblemFactChangeTest {
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
+    private static final String FIXED_TEST = "Fixed";
+    private static final String RANDOM_TEST = "Random";
 
     private class WorkingSolutionAwareProblemFactChange
             extends AssignTaskProblemFactChange {
@@ -52,7 +50,7 @@ public class AssignTaskProblemFactChangeTest extends BaseProblemFactChangeTest<A
         }
     }
 
-    private class ProgrammedAssignTaskProblemFactChange extends ProgrammedProblemFactChange {
+    private class ProgrammedAssignTaskProblemFactChange extends ProgrammedProblemFactChange<AssignTaskProblemFactChange> {
 
         StringBuilder workingSolutionBeforeChange = new StringBuilder();
 
@@ -73,22 +71,42 @@ public class AssignTaskProblemFactChangeTest extends BaseProblemFactChangeTest<A
 
     @Test
     public void assignTaskProblemFactChange24Tasks8UsersTest() throws Exception {
-        assignTaskProblemFactChangeTest(_24TASKS_8USERS_SOLUTION);
+        assignTaskProblemFactChangeFixedChangeSetTest(_24TASKS_8USERS_SOLUTION);
+    }
+
+    @Test
+    public void assignTaskProblemFactChange24Tasks8UsersRandomTest() throws Exception {
+        assignTaskProblemFactChangeRandomChangeSetTest(_24TASKS_8USERS_SOLUTION);
     }
 
     @Test
     public void assignTaskProblemFactChange50Tasks5UsersTest() throws Exception {
-        assignTaskProblemFactChangeTest(_50TASKS_5USERS_SOLUTION);
+        assignTaskProblemFactChangeFixedChangeSetTest(_50TASKS_5USERS_SOLUTION);
+    }
+
+    @Test
+    public void assignTaskProblemFactChange50Tasks5UsersRandomTest() throws Exception {
+        assignTaskProblemFactChangeRandomChangeSetTest(_50TASKS_5USERS_SOLUTION);
     }
 
     @Test
     public void assignTaskProblemFactChange100Tasks5UsersTest() throws Exception {
-        assignTaskProblemFactChangeTest(_100TASKS_5USERS_SOLUTION);
+        assignTaskProblemFactChangeFixedChangeSetTest(_100TASKS_5USERS_SOLUTION);
+    }
+
+    @Test
+    public void assignTaskProblemFactChange100Tasks5UsersRandomTest() throws Exception {
+        assignTaskProblemFactChangeRandomChangeSetTest(_100TASKS_5USERS_SOLUTION);
     }
 
     @Test
     public void assignTaskProblemFactChange500Tasks5UsersTest() throws Exception {
-        assignTaskProblemFactChangeTest(_500TASKS_20USERS_SOLUTION);
+        assignTaskProblemFactChangeFixedChangeSetTest(_500TASKS_20USERS_SOLUTION);
+    }
+
+    @Test
+    public void assignTaskProblemFactChange500Tasks5UsersRandomTest() throws Exception {
+        assignTaskProblemFactChangeRandomChangeSetTest(_500TASKS_20USERS_SOLUTION);
     }
 
     @Test
@@ -100,7 +118,7 @@ public class AssignTaskProblemFactChangeTest extends BaseProblemFactChangeTest<A
         executeSequentialChanges(solution, Collections.singletonList(new ProgrammedAssignTaskProblemFactChange(task, user)));
     }
 
-    private void assignTaskProblemFactChangeTest(String solutionResource) throws Exception {
+    private void assignTaskProblemFactChangeFixedChangeSetTest(String solutionResource) throws Exception {
         TaskAssigningSolution solution = readTaskAssigningSolution(solutionResource);
         solution.getUserList().add(User.PLANNING_USER);
 
@@ -157,17 +175,46 @@ public class AssignTaskProblemFactChangeTest extends BaseProblemFactChangeTest<A
         task = new Task(nextTaskId, "NewTask_" + nextTaskId, 1);
         programmedChanges.add(new ProgrammedAssignTaskProblemFactChange(task, user));
 
-        executeSequentialChanges(solution, programmedChanges);
+        assignTaskProblemFactChangeTest(solution, solutionResource, FIXED_TEST, programmedChanges);
+    }
 
-        String resourceName = solutionResource.substring(solutionResource.lastIndexOf("/") + 1);
-        writeToTempFile("AssignTaskProblemFactChangeTest.assignTaskProblemFactChangeTest.InitialSolution_", printSolution(solution));
-        for (int i = 0; i < programmedChanges.size(); i++) {
-            ProgrammedAssignTaskProblemFactChange scheduledChange = programmedChanges.get(i);
-            try {
-                writeToTempFile("AssignTaskProblemFactChangeTest.assignTaskProblemFactChangeTest.WorkingSolutionBeforeChange_" + resourceName + "_" + i + "__", scheduledChange.workingSolutionBeforeChangeAsString());
-                writeToTempFile("AssignTaskProblemFactChangeTest.assignTaskProblemFactChangeTest.SolutionAfterChange_" + resourceName + "_" + i + "__", scheduledChange.solutionAfterChangeAsString());
-            } catch (Exception e) {
-                e.printStackTrace();
+    private void assignTaskProblemFactChangeRandomChangeSetTest(String solutionResource) throws Exception {
+        TaskAssigningSolution solution = readTaskAssigningSolution(solutionResource);
+        solution.getUserList().add(User.PLANNING_USER);
+
+        int taskCount = solution.getTaskList().size();
+        int userCount = solution.getUserList().size();
+        int randomChanges = taskCount / 2 + random.nextInt(taskCount / 2);
+
+        //prepare the list of changes to program
+        List<ProgrammedAssignTaskProblemFactChange> programmedChanges = new ArrayList<>();
+
+        Task randomTask;
+        User randomUser;
+        for (int i = 0; i < randomChanges; i++) {
+            randomTask = solution.getTaskList().get(random.nextInt(taskCount));
+            randomUser = solution.getUserList().get(random.nextInt(userCount));
+            programmedChanges.add(new ProgrammedAssignTaskProblemFactChange(randomTask, randomUser));
+        }
+        assignTaskProblemFactChangeTest(solution, solutionResource, RANDOM_TEST, programmedChanges);
+    }
+
+    private void assignTaskProblemFactChangeTest(TaskAssigningSolution solution,
+                                                 String solutionResource,
+                                                 String testType,
+                                                 List<ProgrammedAssignTaskProblemFactChange> programmedChanges) throws Exception {
+        TaskAssigningSolution initialSolution = executeSequentialChanges(solution, programmedChanges);
+        if (writeTestFiles()) {
+            String resourceName = solutionResource.substring(solutionResource.lastIndexOf("/") + 1);
+            writeToTempFile("AssignTaskProblemFactChangeTest.assignTaskProblemFactChangeTest." + testType + ".InitialSolution_", printSolution(initialSolution));
+            for (int i = 0; i < programmedChanges.size(); i++) {
+                ProgrammedAssignTaskProblemFactChange scheduledChange = programmedChanges.get(i);
+                try {
+                    writeToTempFile("AssignTaskProblemFactChangeTest.assignTaskProblemFactChangeTest." + testType + ".WorkingSolutionBeforeChange_" + resourceName + "_" + i + "__", scheduledChange.workingSolutionBeforeChangeAsString());
+                    writeToTempFile("AssignTaskProblemFactChangeTest.assignTaskProblemFactChangeTest." + testType + ".SolutionAfterChange_" + resourceName + "_" + i + "__", scheduledChange.solutionAfterChangeAsString());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -178,7 +225,7 @@ public class AssignTaskProblemFactChangeTest extends BaseProblemFactChangeTest<A
         TaskAssigningSolution lastSolution = programmedChanges.get(programmedChanges.size() - 1).getSolutionAfterChange();
         Map<Long, AssignTaskProblemFactChange> summarizedChanges = new HashMap<>();
         programmedChanges.forEach(change -> {
-            //but if  task was changed multiple times record only the last change.
+            //if  task was changed multiple times record only the last change.
             summarizedChanges.put(change.getChange().getTask().getId(), change.getChange());
         });
         summarizedChanges.values().forEach(change -> assertAssignTaskProblemFactChangeWasProduced(change, lastSolution));

@@ -18,24 +18,26 @@ import static org.junit.Assert.fail;
 
 public class TestSolver extends BaseTaskAssigningTest {
 
+    private static final long MILLISECONDS_TIME_SPENT_LIMIT = 10000;
+
     @Test
     public void startSolverAndSolution24Tasks8UsersTest() throws Exception {
-        testSolverStartAndSolution(10000, _24TASKS_8USERS_SOLUTION);
+        testSolverStartAndSolution(MILLISECONDS_TIME_SPENT_LIMIT, _24TASKS_8USERS_SOLUTION);
     }
 
     @Test
     public void startSolverAndSolution50Tasks5UsersTest() throws Exception {
-        testSolverStartAndSolution(10000, _50TASKS_5USERS_SOLUTION);
+        testSolverStartAndSolution(MILLISECONDS_TIME_SPENT_LIMIT, _50TASKS_5USERS_SOLUTION);
     }
 
     @Test
     public void startSolverAndSolution100Tasks5UsersTest() throws Exception {
-        testSolverStartAndSolution(10000, _100TASKS_5USERS_SOLUTION);
+        testSolverStartAndSolution(MILLISECONDS_TIME_SPENT_LIMIT, _100TASKS_5USERS_SOLUTION);
     }
 
     @Test
     public void startSolverAndSolution500Tasks5UsersTest() throws Exception {
-        testSolverStartAndSolution(10000, _500TASKS_20USERS_SOLUTION);
+        testSolverStartAndSolution(MILLISECONDS_TIME_SPENT_LIMIT, _500TASKS_20USERS_SOLUTION);
     }
 
     /**

@@ -3,12 +3,11 @@ package org.jbpm.services.task.assigning.model.solver.realtime;
 import org.jbpm.services.task.assigning.model.Task;
 import org.jbpm.services.task.assigning.model.TaskAssigningSolution;
 import org.jbpm.services.task.assigning.model.TaskOrUser;
-import org.jbpm.services.task.assigning.model.User;
 import org.optaplanner.core.impl.score.director.ScoreDirector;
 import org.optaplanner.core.impl.solver.ProblemFactChange;
 
 /**
- * Implements the removal of a Task.
+ * Implements the removal of a Task. If the Task not exists does no action.
  */
 public class RemoveTaskProblemFactChange implements ProblemFactChange<TaskAssigningSolution> {
 
@@ -16,6 +15,10 @@ public class RemoveTaskProblemFactChange implements ProblemFactChange<TaskAssign
 
     public RemoveTaskProblemFactChange(Task task) {
         this.task = task;
+    }
+
+    public Task getTask() {
+        return task;
     }
 
     @Override

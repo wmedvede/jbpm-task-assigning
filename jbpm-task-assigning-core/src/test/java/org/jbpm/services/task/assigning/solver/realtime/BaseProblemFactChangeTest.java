@@ -2,21 +2,29 @@ package org.jbpm.services.task.assigning.solver.realtime;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 import org.jbpm.services.task.assigning.model.TaskAssigningSolution;
 import org.jbpm.services.task.assigning.solver.BaseTaskAssigningTest;
+import org.junit.Rule;
+import org.junit.rules.ExpectedException;
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.impl.solver.ProblemFactChange;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class BaseProblemFactChangeTest<C extends ProblemFactChange<TaskAssigningSolution>> extends BaseTaskAssigningTest {
+public class BaseProblemFactChangeTest extends BaseTaskAssigningTest {
 
-    protected class ProgrammedProblemFactChange {
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+
+    final Random random = new Random();
+
+    protected class ProgrammedProblemFactChange<C extends ProblemFactChange<TaskAssigningSolution>> {
 
         private TaskAssigningSolution solutionAfterChange;
 
@@ -46,7 +54,7 @@ public class BaseProblemFactChangeTest<C extends ProblemFactChange<TaskAssigning
         }
     }
 
-    protected void executeSequentialChanges(TaskAssigningSolution solution, List<? extends ProgrammedProblemFactChange> changes) {
+    protected TaskAssigningSolution executeSequentialChanges(TaskAssigningSolution solution, List<? extends ProgrammedProblemFactChange> changes) throws Exception {
         Solver<TaskAssigningSolution> solver = createDaemonSolver();
 
         //store the first solution that was produced by the solver for knowing how things looked like at the very
@@ -56,6 +64,7 @@ public class BaseProblemFactChangeTest<C extends ProblemFactChange<TaskAssigning
 
         final Semaphore programNextChange = new Semaphore(0);
         final Semaphore allChangesWereProduced = new Semaphore(0);
+        final Semaphore executorThreadStarted = new Semaphore(0);
 
         //prepare the list of changes to program
         List<ProgrammedProblemFactChange> programmedChanges = new ArrayList<>(changes);
@@ -93,6 +102,7 @@ public class BaseProblemFactChangeTest<C extends ProblemFactChange<TaskAssigning
                 try {
                     //wait until next problem fact change can be added to the solver.
                     //by construction the lock is only released when no problem fact change is in progress.
+                    executorThreadStarted.release();
                     programNextChange.acquire();
                     ProgrammedProblemFactChange programmedChange = programmedChanges.remove(0);
                     hasMoreChanges = !programmedChanges.isEmpty();
@@ -112,10 +122,12 @@ public class BaseProblemFactChangeTest<C extends ProblemFactChange<TaskAssigning
             }
         });
 
+        executorThreadStarted.acquire();
         solver.solve(solution);
 
         assertTrue(programmedChanges.isEmpty());
         assertEquals(totalProgrammedChanges, scheduledChanges.size());
         assertEquals(pendingChanges[0], 0);
+        return initialSolution[0];
     }
 }

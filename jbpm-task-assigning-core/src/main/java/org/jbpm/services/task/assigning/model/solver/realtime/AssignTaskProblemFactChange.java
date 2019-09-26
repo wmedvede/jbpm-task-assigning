@@ -10,7 +10,7 @@ import org.optaplanner.core.impl.solver.ProblemFactChange;
 
 /**
  * Implements the "direct" assignment of an existing Task to a User.
- * This PFC can be useful scenarios were e.g. a system administrator manually assigns a Task to a given user from the
+ * This PFC can be useful in scenarios were e.g. a system administrator manually assigns a Task to a given user from the
  * jBPM tasks list administration. While it's expected that environments that relied the tasks assigning to OptaPlanner
  * shouldn't do this "direct" assignments, we still provide this PFC for dealing with this edge case scenarios.
  * Note that this use cases might break hard constraints or introduce considerable score penalization for soft
@@ -44,14 +44,16 @@ public class AssignTaskProblemFactChange implements ProblemFactChange<TaskAssign
 
         User workingUser = scoreDirector.lookUpWorkingObjectOrReturnNull(user);
         if (workingUser == null) {
-            throw new TaskAssigningInternalException("Expected user: " + user + " was not found in current working solution");
+            throw new TaskAssigningInternalException(String.format("Expected user: %s was not found in current working solution", user));
         }
 
         Task workingTask = scoreDirector.lookUpWorkingObjectOrReturnNull(task);
         if (workingTask == null) {
             // The task will be created by this PFC.
-            // Planning entity lists are already cloned by the SolutionCloner, no need to clone.
+            // ensure the task to be added doesn't have a manually assigned pointer to the previousTaskOrUser
+            task.setPreviousTaskOrUser(null);
             scoreDirector.beforeEntityAdded(task);
+            // Planning entity lists are already cloned by the SolutionCloner, no need to clone.
             solution.getTaskList().add(task);
             scoreDirector.afterEntityAdded(task);
             scoreDirector.triggerVariableListeners();
@@ -66,6 +68,10 @@ public class AssignTaskProblemFactChange implements ProblemFactChange<TaskAssign
                 nextTask.setPreviousTaskOrUser(previousTaskOrUser);
                 scoreDirector.afterVariableChanged(nextTask, "previousTaskOrUser");
             }
+            scoreDirector.beforeVariableChanged(workingTask, "previousTaskOrUser");
+            workingTask.setPreviousTaskOrUser(null);
+            scoreDirector.afterVariableChanged(workingTask, "previousTaskOrUser");
+            scoreDirector.triggerVariableListeners();
         }
 
         TaskOrUser insertPosition = findInsertPosition(workingUser);
@@ -81,7 +87,6 @@ public class AssignTaskProblemFactChange implements ProblemFactChange<TaskAssign
             scoreDirector.afterVariableChanged(insertPositionNextTask, "previousTaskOrUser");
         }
 
-        //TODO review at which moment do we have to set and invoke the pinned for this case..
         scoreDirector.beforeProblemPropertyChanged(workingTask);
         workingTask.setPinned(true);
         scoreDirector.afterProblemPropertyChanged(workingTask);
@@ -99,6 +104,9 @@ public class AssignTaskProblemFactChange implements ProblemFactChange<TaskAssign
      * if e.g. T3 is returned, a new task Tn will be later added in the following position.
      * <p>
      * U -> T1 -> T2 -> T3 -> Tn -> T4 -> null
+     * Given that we are using a chained structure, to pin a task Tn to a given user, we must be sure that all the
+     * previous tasks in the chain are pinned to the same user. For keeping the structure consistency a task Tn is
+     * inserted after the last pinned chain. In the example above we have that existing tasks T1, T2 and T3 are pinned.
      * @param user the for adding a task to.
      * @return the proper TaskOrUser object were a task can be added. This method will never return null.
      */
