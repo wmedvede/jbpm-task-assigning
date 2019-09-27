@@ -1,6 +1,6 @@
 package org.jbpm.services.task.assigning.model.solver.realtime;
 
-import org.jbpm.services.task.assigning.TaskAssigningInternalException;
+import org.jbpm.services.task.assigning.TaskAssigningRuntimeException;
 import org.jbpm.services.task.assigning.model.Task;
 import org.jbpm.services.task.assigning.model.TaskAssigningSolution;
 import org.jbpm.services.task.assigning.model.TaskOrUser;
@@ -44,7 +44,7 @@ public class AssignTaskProblemFactChange implements ProblemFactChange<TaskAssign
 
         User workingUser = scoreDirector.lookUpWorkingObjectOrReturnNull(user);
         if (workingUser == null) {
-            throw new TaskAssigningInternalException(String.format("Expected user: %s was not found in current working solution", user));
+            throw new TaskAssigningRuntimeException(String.format("Expected user: %s was not found in current working solution", user));
         }
 
         Task workingTask = scoreDirector.lookUpWorkingObjectOrReturnNull(task);

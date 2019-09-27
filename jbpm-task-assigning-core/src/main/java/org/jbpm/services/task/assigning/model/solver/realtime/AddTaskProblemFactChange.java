@@ -1,13 +1,13 @@
 package org.jbpm.services.task.assigning.model.solver.realtime;
 
-import org.jbpm.services.task.assigning.TaskAssigningInternalException;
+import org.jbpm.services.task.assigning.TaskAssigningRuntimeException;
 import org.jbpm.services.task.assigning.model.Task;
 import org.jbpm.services.task.assigning.model.TaskAssigningSolution;
 import org.optaplanner.core.impl.score.director.ScoreDirector;
 import org.optaplanner.core.impl.solver.ProblemFactChange;
 
 /**
- * Adds a Task to the solution. If a task with the given identifier already exists an exception is thrown.
+ * Adds a Task to the working solution. If a task with the given identifier already exists an exception is thrown.
  */
 public class AddTaskProblemFactChange implements ProblemFactChange<TaskAssigningSolution> {
 
@@ -26,7 +26,7 @@ public class AddTaskProblemFactChange implements ProblemFactChange<TaskAssigning
         TaskAssigningSolution solution = scoreDirector.getWorkingSolution();
         Task workingTask = scoreDirector.lookUpWorkingObjectOrReturnNull(task);
         if (workingTask != null) {
-            throw new TaskAssigningInternalException(String.format("A task with the given identifier id: %s already exists", task.getId()));
+            throw new TaskAssigningRuntimeException(String.format("A task with the given identifier id: %s already exists", task.getId()));
         }
         scoreDirector.beforeEntityAdded(task);
         // Planning entity lists are already cloned by the SolutionCloner, no need to clone.

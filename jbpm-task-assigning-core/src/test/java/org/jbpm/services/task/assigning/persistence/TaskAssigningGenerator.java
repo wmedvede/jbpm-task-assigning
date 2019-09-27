@@ -39,6 +39,15 @@ import org.optaplanner.persistence.xstream.impl.domain.solution.XStreamSolutionF
 
 import static org.optaplanner.examples.common.app.CommonApp.DATA_DIR_SYSTEM_PROPERTY;
 
+/**
+ * Helper class for generating a set of example solution files. Was used for generating the files below and doesn't need
+ * to be executed unless this files needs to be re-generated.
+ * <p>
+ * test/resources/data/unsolved/24tasks-8users.xml
+ * test/resources/data/unsolved/50tasks-5users.xml
+ * test/resources/data/unsolved/100tasks-5users.xml
+ * test/resources/data/unsolved/500tasks-20users.xml
+ */
 public class TaskAssigningGenerator extends LoggingMain {
 
     private static final int TASK_MAX_PRIORITY = 10;

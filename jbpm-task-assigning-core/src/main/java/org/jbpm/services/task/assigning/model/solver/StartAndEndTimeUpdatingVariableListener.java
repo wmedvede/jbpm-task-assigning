@@ -28,8 +28,8 @@ import org.optaplanner.core.impl.score.director.ScoreDirector;
  * <p>
  * User1 <-> Task1 <-> Task2 <-> sourceTask <-> Task4 <-> Task5 -> null
  * <p>
- * keeps the startDate and endDate of the tasks in the chain updated when any of the tasks in the chain changes.
- * e.g. when sourceTask changes, the startDate and endDate of tasks {sourceTask, Task4, Task5} is recalculated
+ * keeps the startTime and endTime of the tasks in the chain updated when any of the tasks in the chain changes.
+ * e.g. when sourceTask changes, the startTime and endTime of tasks {sourceTask, Task4, Task5} is recalculated
  * accordingly.
  */
 public class StartAndEndTimeUpdatingVariableListener implements VariableListener<Task> {

@@ -26,7 +26,7 @@ public class User extends TaskOrUser implements OrganizationalEntity {
 
     /**
      * Planning user is defined user for avoid breaking hard constraints. When no user is found that met the task required
-     * potential owners set, or the required skills set, the PLANNING_USER is assigned.
+     * potential owners set, or the required skills set, etc, the PLANNING_USER is assigned.
      */
     public static final User PLANNING_USER = new User(Long.MIN_VALUE, "planning_user");
 

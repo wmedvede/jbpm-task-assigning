@@ -25,7 +25,7 @@ public abstract class TaskOrUser extends AbstractPersistable {
 
     /**
      * Shadow variable for being able to move forward in the chain. So finally by using the nextTask and the
-     * previousUserOrTask double linked structure is created.
+     * previousUserOrTask a double linked structure is created.
      *
      * <p>
      * User (the anchor) <-> A <-> B <-> C <-> D -> null

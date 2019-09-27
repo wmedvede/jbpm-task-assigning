@@ -22,18 +22,15 @@ import java.util.Comparator;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.jbpm.services.task.assigning.model.Task;
 
-public class TaskDifficultyComparator implements Comparator<Task>, Serializable {
+public class TaskDifficultyComparator implements Comparator<Task>,
+                                                 Serializable {
 
     @Override
     public int compare(Task a, Task b) {
         return new CompareToBuilder()
-                .append(a.getPriority(), b.getPriority())
-                /*
-                TODO, add more criterias if needed.
-                .append(a.getTaskType().getRequiredSkillList().size(), b.getTaskType().getRequiredSkillList().size())
-                */
+                //priority goes from [0(high)... 5 (medium)... 10 (low)] so we switch factors for the comparison.
+                .append(b.getPriority(), a.getPriority())
                 .append(a.getId(), b.getId())
                 .toComparison();
     }
-
 }

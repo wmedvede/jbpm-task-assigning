@@ -38,7 +38,7 @@ import static org.jbpm.services.task.assigning.model.solver.TaskHelper.isPotenti
  * PlanningVariable.
  * <p>
  * In this particular problem we want to do the assignments in a way that the list of tasks
- * for a given user is ordered. (see that Higher priority tasks must be resolved first is a soft constraint)
+ * for a given user is ordered. (see e.g. that Higher priority tasks must be resolved first is a soft constraint)
  * <p>
  * User1: A <- B <- C <- D
  * <p>
@@ -49,7 +49,7 @@ import static org.jbpm.services.task.assigning.model.solver.TaskHelper.isPotenti
  * <p>
  * User1 <- A <- B <- C <- D  (In this example we say that User1 the anchor)
  * <p>
- * This explains why property "previousTaskOrUser" can have an User or a Task.
+ * This explains why property "previousTaskOrUser" can be assigned with User or a Task.
  * <p>
  * BUT the solver will build the solutions in a way that only the first item of the "chain" will point to
  * a user. This is how a CHAINED configuration works. And the way the solver knows which must be the fact class
@@ -69,24 +69,24 @@ import static org.jbpm.services.task.assigning.model.solver.TaskHelper.isPotenti
  * <p>
  * Employee1 (the anchor) <- A <- B <- C <- D
  * <p>
- * and we take e.g. D, then to get the assigned Employee1 we must iterate but this is probably not the best idea.
+ * and we take e.g. D, then to get the assigned Employee1 the list must be iterated, but this probably not the best idea.
  * <p>
  * Solution, add a shadow variable and let the solver populate this variable when the solution is constructed.
- * Here we declare a shadow variable for keeping a reference to the anchor. This shadow variable is populated and kept
- * consistent by the solver.
+ * With the declaration below a shadow variable is defined for keeping a reference to the anchor. This shadow variable
+ * is populated and kept consistent by the solver.
  * <p>
- * Shadow variable
+ * Shadow variable:
  * Let all Tasks have a reference to the anchor of the chain, the assigned user.
  * @AnchorShadowVariable(sourceVariableName = "previousTaskOrUser")
  * private User user;
  * <p>
  * CustomShadowVariable startTime:
- * is a convenient variable for having the startTime already calculated for a given Task.
+ * Additionally is a convenient shadow variable is declared for having the startTime of a task already calculated.
  * @CustomShadowVariable(variableListenerClass = StartTimeUpdatingVariableListener.class,
  * // Arguable, to adhere to API specs (although this works), nextTask and user should also be a source,
  * // because this shadow must be triggered after nextTask and user (but there is no need to be triggered by those)
  * sources = {@PlanningVariableReference(variableName = "previousTaskOrUser")})
- * private Integer startTime; // In minutes
+ * private Integer startTime;
  * <p>
  * So the variableListenerClass is invoked when the source variable is changed/assigned.
  */
@@ -119,9 +119,9 @@ public class Task extends TaskOrUser {
     private User user;
 
     /**
-     * When the previousTask changes we need to update the startTime for current task and also the startDate
+     * When the previousTask changes we need to update the startTime for current task and also the startTime
      * for all the tasks that comes after.  previousTask -> currentTask -> C -> D -> E since each task can only start
-     * after his previous one has finished. As part of the update the endDate for the modified tasks will also be updated.
+     * after his previous one has finished. As part of the update the endTime for the modified tasks will also be updated.
      */
     @CustomShadowVariable(variableListenerClass = StartAndEndTimeUpdatingVariableListener.class,
             // Arguable, to adhere to API specs (although this works), nextTask and user should also be a source,
@@ -243,7 +243,7 @@ public class Task extends TaskOrUser {
     public String toString() {
         return "Task{" +
                 "id=" + id +
-                "name='" + name + '\'' +
+                ", name='" + name + '\'' +
                 ", priority=" + priority +
                 ", pinned=" + pinned +
                 ", potentialOwners=" + potentialOwners +
@@ -260,8 +260,9 @@ public class Task extends TaskOrUser {
     // ************************************************************************
 
     /**
-     * Indicates if the currently assigned user can execute this task. Such a user is a potential owner of the task.
-     * @return 0 if the assigned user can perform the this task, -1 in any other case.
+     * Indicates if the currently assigned user can execute this task. If this is the case, the user is a potential
+     * owner of the task.
+     * @return 0 if the assigned user can execute this task, -1 in any other case.
      */
     public int acceptsAssignedUser() {
         if (User.PLANNING_USER.getEntityId().equals(getUser().getEntityId())) {

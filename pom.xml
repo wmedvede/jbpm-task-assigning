@@ -50,7 +50,6 @@
     </dependencies>
   </dependencyManagement>
 
-
   <repositories>
     <!-- Bootstrap repository to locate the parent pom when the parent pom has not been build locally. -->
     <repository>
@@ -72,6 +71,4 @@
   <modules>
     <module>jbpm-task-assigning-core</module>
   </modules>
-
-
 </project>

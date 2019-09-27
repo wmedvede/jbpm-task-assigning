@@ -7,7 +7,8 @@ import org.optaplanner.core.impl.score.director.ScoreDirector;
 import org.optaplanner.core.impl.solver.ProblemFactChange;
 
 /**
- * Implements the removal of a Task. If the Task not exists does no action.
+ * Implements the removal of a Task from the working solution. If a task with the given identifier not exists it does
+ * no action.
  */
 public class RemoveTaskProblemFactChange implements ProblemFactChange<TaskAssigningSolution> {
 
