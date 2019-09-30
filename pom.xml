@@ -13,8 +13,8 @@
   <artifactId>jbpm-task-assigning</artifactId>
   <packaging>pom</packaging>
 
-  <name>jBPM :: Task Assigning</name>
-  <description>jBPM :: Task Assigning</description>
+  <name>jBPM Task Assigning</name>
+  <description>jBPM Task Assigning</description>
 
   <properties>
     <spotbugs.failOnViolation>true</spotbugs.failOnViolation>
@@ -70,5 +70,6 @@
 
   <modules>
     <module>jbpm-task-assigning-core</module>
+    <module>jbpm-task-assigning-process-runtime-integration</module>
   </modules>
 </project>

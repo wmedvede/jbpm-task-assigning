@@ -11,6 +11,10 @@
   </parent>
 
   <artifactId>jbpm-task-assigning-core</artifactId>
+
+  <name>jBPM Task Assigning - Core</name>
+  <description>jBPM Task Assigning - Core</description>
+
   <dependencies>
     <dependency>
       <groupId>org.optaplanner</groupId>
@@ -31,6 +35,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-annotations</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <!-- test dependencies -->
