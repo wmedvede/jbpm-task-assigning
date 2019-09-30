@@ -159,6 +159,26 @@ public class AssignTaskProblemFactChangeTest extends BaseProblemFactChangeTest {
         user = solution.getUserList().get(5);
         programmedChanges.add(new ProgrammedAssignTaskProblemFactChange(task, user));
 
+        //assign Task_16 to User_5
+        task = solution.getTaskList().get(16);
+        user = solution.getUserList().get(5);
+        programmedChanges.add(new ProgrammedAssignTaskProblemFactChange(task, user));
+
+        //assign Task_17 to User_5
+        task = solution.getTaskList().get(17);
+        user = solution.getUserList().get(5);
+        programmedChanges.add(new ProgrammedAssignTaskProblemFactChange(task, user));
+
+        //repeat assign Task_17 to User_5
+        task = solution.getTaskList().get(17);
+        user = solution.getUserList().get(5);
+        programmedChanges.add(new ProgrammedAssignTaskProblemFactChange(task, user));
+
+        //repeat assign Task_15 to User_5
+        task = solution.getTaskList().get(15);
+        user = solution.getUserList().get(5);
+        programmedChanges.add(new ProgrammedAssignTaskProblemFactChange(task, user));
+
         long nextTaskId = solution.getTaskList().stream()
                 .mapToLong(Task::getId)
                 .max().orElse(-1) + 1;
@@ -171,6 +191,12 @@ public class AssignTaskProblemFactChangeTest extends BaseProblemFactChangeTest {
         //assign a brand new task "NewTask_x and assign to User_2
         nextTaskId++;
         user = solution.getUserList().get(2);
+        task = new Task(nextTaskId, "NewTask_" + nextTaskId, 1);
+        programmedChanges.add(new ProgrammedAssignTaskProblemFactChange(task, user));
+
+        //assign a brand new task "NewTask_x and assign to User_5
+        nextTaskId++;
+        user = solution.getUserList().get(5);
         task = new Task(nextTaskId, "NewTask_" + nextTaskId, 1);
         programmedChanges.add(new ProgrammedAssignTaskProblemFactChange(task, user));
 

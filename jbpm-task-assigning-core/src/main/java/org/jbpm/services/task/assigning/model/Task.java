@@ -17,6 +17,7 @@
 package org.jbpm.services.task.assigning.model;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -94,11 +95,16 @@ import static org.jbpm.services.task.assigning.model.solver.TaskHelper.isPotenti
 @XStreamAlias("TaTask")
 public class Task extends TaskOrUser {
 
+    private long processInstanceId;
+    private String processId;
+    private String containerId;
     private String name;
     private int priority;
+    private Map<String, Object> inputData;
 
     @PlanningPin
     private boolean pinned;
+    private boolean published;
 
     private Set<OrganizationalEntity> potentialOwners = new HashSet<>();
     private Set<TypedLabel> typedLabels = new HashSet<>();
@@ -151,6 +157,46 @@ public class Task extends TaskOrUser {
         pinned = false;
     }
 
+    public Task(long id,
+                long processInstanceId,
+                String processId,
+                String containerId,
+                String name,
+                int priority,
+                Map<String, Object> inputData) {
+        super(id);
+        this.processInstanceId = processInstanceId;
+        this.processId = processId;
+        this.containerId = containerId;
+        this.name = name;
+        this.priority = priority;
+        this.inputData = inputData;
+    }
+
+    public long getProcessInstanceId() {
+        return processInstanceId;
+    }
+
+    public void setProcessInstanceId(long processInstanceId) {
+        this.processInstanceId = processInstanceId;
+    }
+
+    public String getProcessId() {
+        return processId;
+    }
+
+    public void setProcessId(String processId) {
+        this.processId = processId;
+    }
+
+    public String getContainerId() {
+        return containerId;
+    }
+
+    public void setContainerId(String containerId) {
+        this.containerId = containerId;
+    }
+
     public String getName() {
         return name;
     }
@@ -167,12 +213,28 @@ public class Task extends TaskOrUser {
         this.priority = priority;
     }
 
+    public Map<String, Object> getInputData() {
+        return inputData;
+    }
+
+    public void setInputData(Map<String, Object> inputData) {
+        this.inputData = inputData;
+    }
+
     public boolean isPinned() {
         return pinned;
     }
 
     public void setPinned(boolean pinned) {
         this.pinned = pinned;
+    }
+
+    public boolean isPublished() {
+        return published;
+    }
+
+    public void setPublished(boolean published) {
+        this.published = published;
     }
 
     /**

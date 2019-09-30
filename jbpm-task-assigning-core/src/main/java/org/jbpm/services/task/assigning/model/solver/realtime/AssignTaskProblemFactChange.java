@@ -48,50 +48,70 @@ public class AssignTaskProblemFactChange implements ProblemFactChange<TaskAssign
         }
 
         Task workingTask = scoreDirector.lookUpWorkingObjectOrReturnNull(task);
-        if (workingTask == null) {
-            // The task will be created by this PFC.
-            // ensure the task to be added doesn't have a manually assigned pointer to the previousTaskOrUser
-            task.setPreviousTaskOrUser(null);
-            scoreDirector.beforeEntityAdded(task);
-            // Planning entity lists are already cloned by the SolutionCloner, no need to clone.
-            solution.getTaskList().add(task);
-            scoreDirector.afterEntityAdded(task);
-            scoreDirector.triggerVariableListeners();
-            workingTask = scoreDirector.lookUpWorkingObjectOrReturnNull(task);
-        } else {
-            //un-link the task from his previous chain/position.
-            TaskOrUser previousTaskOrUser = workingTask.getPreviousTaskOrUser();
-            Task nextTask = workingTask.getNextTask();
-            if (nextTask != null) {
-                //re-link the chain where the workingTask belonged if any
-                scoreDirector.beforeVariableChanged(nextTask, "previousTaskOrUser");
-                nextTask.setPreviousTaskOrUser(previousTaskOrUser);
-                scoreDirector.afterVariableChanged(nextTask, "previousTaskOrUser");
-            }
-            scoreDirector.beforeVariableChanged(workingTask, "previousTaskOrUser");
-            workingTask.setPreviousTaskOrUser(null);
-            scoreDirector.afterVariableChanged(workingTask, "previousTaskOrUser");
-            scoreDirector.triggerVariableListeners();
-        }
 
         TaskOrUser insertPosition = findInsertPosition(workingUser);
         Task insertPositionNextTask = insertPosition.getNextTask();
+        boolean isNew = false;
 
-        scoreDirector.beforeVariableChanged(workingTask, "previousTaskOrUser");
-        workingTask.setPreviousTaskOrUser(insertPosition);
-        scoreDirector.afterVariableChanged(workingTask, "previousTaskOrUser");
-
-        if (insertPositionNextTask != null) {
-            scoreDirector.beforeVariableChanged(insertPositionNextTask, "previousTaskOrUser");
-            insertPositionNextTask.setPreviousTaskOrUser(workingTask);
-            scoreDirector.afterVariableChanged(insertPositionNextTask, "previousTaskOrUser");
+        if (workingTask == null) {
+            // The task will be created by this PFC.
+            // ensure that the task to be added doesn't have any out-side manually assigned values for the values that
+            // are calculated by OptaPlanner
+            task.setPreviousTaskOrUser(null);
+            task.setUser(null);
+            task.setPinned(false);
+            task.setNextTask(null);
+            task.setStartTime(null);
+            task.setEndTime(null);
+            workingTask = task;
+            isNew = true;
         }
 
-        scoreDirector.beforeProblemPropertyChanged(workingTask);
-        workingTask.setPinned(true);
-        scoreDirector.afterProblemPropertyChanged(workingTask);
+        if (insertPosition == workingTask) {
+            //nothing to do, the task is already pinned and belongs to user. (see findInsertPosition)
+        } else if (insertPosition.getNextTask() == workingTask) {
+            //the task is already in the correct position but not pinned. (see findInsertPosition)
+            scoreDirector.beforeProblemPropertyChanged(workingTask);
+            workingTask.setPinned(true);
+            scoreDirector.afterProblemPropertyChanged(workingTask);
+            scoreDirector.triggerVariableListeners();
+        } else {
+            //the task needs to be re-positioned, might belong to user or not.
+            if (workingTask.getPreviousTaskOrUser() != null) {
+                //un-link the task from his previous chain/position.
+                TaskOrUser previousTaskOrUser = workingTask.getPreviousTaskOrUser();
+                Task nextTask = workingTask.getNextTask();
+                if (nextTask != null) {
+                    //re-link the chain where the workingTask belonged if any
+                    scoreDirector.beforeVariableChanged(nextTask, "previousTaskOrUser");
+                    nextTask.setPreviousTaskOrUser(previousTaskOrUser);
+                    scoreDirector.afterVariableChanged(nextTask, "previousTaskOrUser");
+                }
+            }
 
-        scoreDirector.triggerVariableListeners();
+            if (isNew) {
+                workingTask.setPreviousTaskOrUser(insertPosition);
+                scoreDirector.beforeEntityAdded(workingTask);
+                // Planning entity lists are already cloned by the SolutionCloner, no need to clone.
+                solution.getTaskList().add(workingTask);
+                scoreDirector.afterEntityAdded(workingTask);
+            } else {
+                scoreDirector.beforeVariableChanged(workingTask, "previousTaskOrUser");
+                workingTask.setPreviousTaskOrUser(insertPosition);
+                scoreDirector.afterVariableChanged(workingTask, "previousTaskOrUser");
+            }
+
+            if (insertPositionNextTask != null) {
+                scoreDirector.beforeVariableChanged(insertPositionNextTask, "previousTaskOrUser");
+                insertPositionNextTask.setPreviousTaskOrUser(workingTask);
+                scoreDirector.afterVariableChanged(insertPositionNextTask, "previousTaskOrUser");
+            }
+
+            scoreDirector.beforeProblemPropertyChanged(workingTask);
+            workingTask.setPinned(true);
+            scoreDirector.afterProblemPropertyChanged(workingTask);
+            scoreDirector.triggerVariableListeners();
+        }
     }
 
     /**
