@@ -4,12 +4,9 @@ import java.util.List;
 
 public interface ProcessRuntimeIntegrationClient {
 
-    List<TaskInfo> findTasksByStatus(List<String> status,
-                                     Integer page,
-                                     Integer pageSize,
-                                     String sort,
-                                     boolean sortOrder);
+    List<TaskInfo> findTasks(List<TaskStatus> status,
+                             Integer page,
+                             Integer pageSize);
 
-    List<TaskPlanningResult> planTasks(List<TaskPlanningInfo> planning);
-
+    List<TaskPlanningResult> applyPlanning(List<TaskPlanningInfo> planningInfos);
 }
