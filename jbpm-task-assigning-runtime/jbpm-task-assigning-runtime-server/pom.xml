@@ -33,5 +33,9 @@
       <groupId>org.jbpm</groupId>
       <artifactId>jbpm-task-assigning-process-runtime-integration-client</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.jbpm</groupId>
+      <artifactId>jbpm-task-assigning-user-system-integration-api</artifactId>
+    </dependency>
   </dependencies>
 </project>
