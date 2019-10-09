@@ -1,4 +1,4 @@
-package org.jbpm.task.assigning.runtime.server;
+package org.jbpm.task.assigning.runtime.service;
 
 public class SolverDef {
 

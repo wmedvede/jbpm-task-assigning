@@ -1,4 +1,4 @@
-package org.jbpm.task.assigning.runtime.server.impl;
+package org.jbpm.task.assigning.runtime.service.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;

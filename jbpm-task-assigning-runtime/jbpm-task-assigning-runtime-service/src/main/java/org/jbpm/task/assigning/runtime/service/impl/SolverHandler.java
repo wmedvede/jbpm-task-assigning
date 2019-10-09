@@ -1,10 +1,10 @@
-package org.jbpm.task.assigning.runtime.server.impl;
+package org.jbpm.task.assigning.runtime.service.impl;
 
 import java.util.Arrays;
 import java.util.List;
 
 import org.jbpm.task.assigning.model.TaskAssigningSolution;
-import org.jbpm.task.assigning.runtime.server.SolverDef;
+import org.jbpm.task.assigning.runtime.service.SolverDef;
 import org.jbpm.task.assigning.process.runtime.integration.client.ProcessRuntimeIntegrationClient;
 import org.jbpm.task.assigning.process.runtime.integration.client.TaskInfo;
 import org.jbpm.task.assigning.user.system.integration.UserSystemService;
