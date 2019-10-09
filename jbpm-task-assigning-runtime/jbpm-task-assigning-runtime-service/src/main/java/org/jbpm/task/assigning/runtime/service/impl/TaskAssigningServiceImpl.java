@@ -1,9 +1,9 @@
-package org.jbpm.task.assigning.runtime.server.impl;
+package org.jbpm.task.assigning.runtime.service.impl;
 
 import org.jbpm.task.assigning.model.TaskAssigningSolution;
-import org.jbpm.task.assigning.runtime.server.SolverDef;
-import org.jbpm.task.assigning.runtime.server.SolverDefRegistry;
-import org.jbpm.task.assigning.runtime.server.TaskAssigningService;
+import org.jbpm.task.assigning.runtime.service.SolverDef;
+import org.jbpm.task.assigning.runtime.service.SolverDefRegistry;
+import org.jbpm.task.assigning.runtime.service.TaskAssigningService;
 import org.optaplanner.core.api.solver.Solver;
 import org.optaplanner.core.api.solver.SolverFactory;
 import org.slf4j.Logger;

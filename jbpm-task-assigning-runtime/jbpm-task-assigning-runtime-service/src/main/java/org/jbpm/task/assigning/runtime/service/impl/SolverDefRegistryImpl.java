@@ -1,7 +1,7 @@
-package org.jbpm.task.assigning.runtime.server.impl;
+package org.jbpm.task.assigning.runtime.service.impl;
 
-import org.jbpm.task.assigning.runtime.server.SolverDef;
-import org.jbpm.task.assigning.runtime.server.SolverDefRegistry;
+import org.jbpm.task.assigning.runtime.service.SolverDef;
+import org.jbpm.task.assigning.runtime.service.SolverDefRegistry;
 
 public class SolverDefRegistryImpl implements SolverDefRegistry {
 
