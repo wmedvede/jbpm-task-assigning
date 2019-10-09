@@ -3,12 +3,12 @@
   <!--<environmentMode>FULL_ASSERT</environmentMode>--><!-- To slowly prove there are no bugs in this code -->
   <!--<moveThreadCount>AUTO</moveThreadCount>--><!-- To solve faster by saturating multiple CPU cores -->
 
-  <solutionClass>org.jbpm.services.task.assigning.model.TaskAssigningSolution</solutionClass>
-  <entityClass>org.jbpm.services.task.assigning.model.TaskOrUser</entityClass>
-  <entityClass>org.jbpm.services.task.assigning.model.Task</entityClass>
+  <solutionClass>org.jbpm.task.assigning.model.TaskAssigningSolution</solutionClass>
+  <entityClass>org.jbpm.task.assigning.model.TaskOrUser</entityClass>
+  <entityClass>org.jbpm.task.assigning.model.Task</entityClass>
 
   <scoreDirectorFactory>
-    <scoreDrl>org/jbpm/services/task/assigning/solver/taskAssigningScoreRules.drl</scoreDrl>
+    <scoreDrl>org/jbpm/task/assigning/solver/taskAssigningScoreRules.drl</scoreDrl>
   </scoreDirectorFactory>
 
 </solver>
