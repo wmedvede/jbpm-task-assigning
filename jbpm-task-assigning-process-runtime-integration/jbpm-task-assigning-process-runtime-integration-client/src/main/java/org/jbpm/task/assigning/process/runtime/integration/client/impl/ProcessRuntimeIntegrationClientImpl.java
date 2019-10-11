@@ -189,7 +189,7 @@ public class ProcessRuntimeIntegrationClientImpl implements ProcessRuntimeIntegr
     }
 
     @Override
-    public List<TaskPlanningResult> applyPlanning(List<TaskPlanningInfo> planningInfos) {
+    public List<TaskPlanningResult> applyPlanning(List<TaskPlanningInfo> planningInfos, String userId) {
         long minTaskId = planningInfos.stream().mapToLong(TaskPlanningInfo::getTaskId).min().orElse(0);
         long maxTaskId = planningInfos.stream().mapToLong(TaskPlanningInfo::getTaskId).max().orElse(0);
 
@@ -205,25 +205,13 @@ public class ProcessRuntimeIntegrationClientImpl implements ProcessRuntimeIntegr
         for (TaskInfo taskInfo : taskInfos) {
             planningInfo = taskToPlanningInfo.get(taskInfo.getTaskId());
             if (planningInfo != null) {
-                if (taskInfo.getStatus() == TaskStatus.Ready) {
-                    userTaskServicesClient.claimTask(planningInfo.getContainerId(),
-                                                     planningInfo.getTaskId(),
-                                                     planningInfo.getPlanningParameters().getAssignedUser());
-                } else if (taskInfo.getStatus() == TaskStatus.Reserved) {
-                    if (!planningInfo.getPlanningParameters().getAssignedUser().equals(taskInfo.getActualOwner())) {
-                        userTaskServicesClient.releaseTask(planningInfo.getContainerId(),
-                                                           planningInfo.getTaskId(),
-                                                           null);
-                        userTaskServicesClient.claimTask(planningInfo.getContainerId(),
-                                                         planningInfo.getTaskId(),
-                                                         planningInfo.getPlanningParameters().getAssignedUser());
-                    }
-                }
+                userTaskServicesClient.delegateTask(planningInfo.getContainerId(), planningInfo.getTaskId(), userId, planningInfo.getPlanningParameters().getAssignedUser());
                 if (!planningInfo.getPlanningParameters().equals(taskInfo.getPlanningParameters())) {
                     updatePlanningParameters(taskInfo.getContainerId(), taskInfo.getTaskId(), planningInfo.getPlanningParameters());
                 }
             }
         }
+        //TODO analyze if in the end we'll return something here
         return Collections.emptyList();
     }
 
@@ -325,6 +313,7 @@ public class ProcessRuntimeIntegrationClientImpl implements ProcessRuntimeIntegr
                     taskInfo.setActualOwner(actualOwner);
                 }
                 taskInfo.setInputData(userTaskServicesClient.getTaskInputContentByTaskId(taskInfo.getContainerId(), taskId));
+                //TODO use another repository for storing this information.
                 taskInfo.setPlanningParameters(fromMap(userTaskServicesClient.getTaskOutputContentByTaskId(taskInfo.getContainerId(), taskId)));
 
                 result.add(taskInfo);

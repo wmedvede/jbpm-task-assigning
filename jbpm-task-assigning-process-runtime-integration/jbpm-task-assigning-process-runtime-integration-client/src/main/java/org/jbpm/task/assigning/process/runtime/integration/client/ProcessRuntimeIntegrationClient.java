@@ -8,5 +8,5 @@ public interface ProcessRuntimeIntegrationClient {
                              Integer page,
                              Integer pageSize);
 
-    List<TaskPlanningResult> applyPlanning(List<TaskPlanningInfo> planningInfos);
+    List<TaskPlanningResult> applyPlanning(List<TaskPlanningInfo> planningInfos, String userId);
 }

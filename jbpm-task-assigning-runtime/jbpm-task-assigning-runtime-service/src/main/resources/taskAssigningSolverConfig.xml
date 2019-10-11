@@ -7,6 +7,8 @@
   <entityClass>org.jbpm.task.assigning.model.TaskOrUser</entityClass>
   <entityClass>org.jbpm.task.assigning.model.Task</entityClass>
 
+  <daemon>true</daemon>
+
   <scoreDirectorFactory>
     <scoreDrl>org/jbpm/task/assigning/solver/taskAssigningScoreRules.drl</scoreDrl>
   </scoreDirectorFactory>

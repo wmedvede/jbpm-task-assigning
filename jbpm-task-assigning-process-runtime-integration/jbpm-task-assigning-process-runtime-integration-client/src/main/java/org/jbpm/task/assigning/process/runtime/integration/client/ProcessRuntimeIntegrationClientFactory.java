@@ -26,7 +26,7 @@ public class ProcessRuntimeIntegrationClientFactory {
         configuration.setTimeout(60000);
         configuration.setCapabilities(Collections.singletonList(KieServerConstants.CAPABILITY_BPM));
 
-        //TODO set additional configuration parameters if neccesary.
+        //TODO set additional configuration parameters if necessary.
         //final String kieServerEndpoint = System.getProperty(KieServerConstants.KIE_SERVER_LOCATION);
         //configuration.setMarshallingFormat(isKieServerRendererEnabled() ? MarshallingFormat.JSON : MarshallingFormat.XSTREAM);
         //configuration.setLoadBalancer(LoadBalancer.getDefault(endpoint));

@@ -25,10 +25,17 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class User extends TaskOrUser implements OrganizationalEntity {
 
     /**
+     * System property for configuring the PLANNING_USER entityId.
+     */
+    private static final String PLANNING_USER_ID_PROPERTY = "org.jbpm.task.assigning.model.planningUserId";
+
+    private static final String PLANNING_USER_ID = System.getProperty(PLANNING_USER_ID_PROPERTY, "planning_user");
+
+    /**
      * Planning user is defined user for avoid breaking hard constraints. When no user is found that met the task required
      * potential owners set, or the required skills set, etc, the PLANNING_USER is assigned.
      */
-    public static final User PLANNING_USER = new User(Long.MIN_VALUE, "planning_user");
+    public static final User PLANNING_USER = new ImmutableUser(PLANNING_USER_ID.hashCode(), PLANNING_USER_ID);
 
     private String entityId;
     private Set<Group> groups = new HashSet<>();
@@ -90,5 +97,42 @@ public class User extends TaskOrUser implements OrganizationalEntity {
                 ", groups=" + groups +
                 ", typedLabels=" + typedLabels +
                 '}';
+    }
+
+    private static class ImmutableUser extends User {
+
+        private ImmutableUser() {
+            //required by the FieldSolutionCloner
+        }
+
+        private ImmutableUser(long id, String entityId) {
+            super(id, entityId);
+            super.setGroups(new HashSet<>());
+            super.setTypedLabels(new HashSet<>());
+        }
+
+        @Override
+        public void setEntityId(String entityId) {
+            throwImmutableException();
+        }
+
+        @Override
+        public void setGroups(Set<Group> groups) {
+            throwImmutableException();
+        }
+
+        @Override
+        public void setTypedLabels(Set<TypedLabel> typedLabels) {
+            throwImmutableException();
+        }
+
+        @Override
+        public void setId(Long id) {
+            throwImmutableException();
+        }
+
+        private void throwImmutableException() {
+            throw new RuntimeException("PLANNING_USER: " + getEntityId() + " object can not be modified.");
+        }
     }
 }

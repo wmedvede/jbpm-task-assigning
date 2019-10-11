@@ -34,8 +34,6 @@ import org.optaplanner.persistence.xstream.api.score.buildin.bendable.BendableSc
 @JsonPropertyOrder({"userList", "taskList", "score"})
 public class TaskAssigningSolution extends AbstractPersistable {
 
-    private List<Group> groupList;
-
     @ValueRangeProvider(id = "userRange")
     @ProblemFactCollectionProperty
     private List<User> userList;
@@ -55,14 +53,6 @@ public class TaskAssigningSolution extends AbstractPersistable {
         super(id);
         this.userList = userList;
         this.taskList = taskList;
-    }
-
-    public List<Group> getGroupList() {
-        return groupList;
-    }
-
-    public void setGroupList(List<Group> groupList) {
-        this.groupList = groupList;
     }
 
     public List<User> getUserList() {

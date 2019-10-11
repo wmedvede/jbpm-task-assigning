@@ -27,7 +27,7 @@ public class BaseTaskAssigningTest {
     public static final String _500TASKS_20USERS_SOLUTION = "/data/unsolved/500tasks-20users.xml";
 
     protected boolean writeTestFiles() {
-        return Boolean.parseBoolean(System.getProperty("org.jbpm.task.assigning.writeTestFiles", "false"));
+        return Boolean.parseBoolean(System.getProperty("org.jbpm.task.assigning.test.writeFiles", "false"));
     }
 
     protected SolverFactory<TaskAssigningSolution> createSolverFactory() {

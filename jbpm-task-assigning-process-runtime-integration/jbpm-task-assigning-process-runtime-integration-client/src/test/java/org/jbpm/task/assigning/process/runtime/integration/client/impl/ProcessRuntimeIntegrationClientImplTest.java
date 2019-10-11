@@ -48,7 +48,7 @@ public class ProcessRuntimeIntegrationClientImplTest {
         planningInfo2.getPlanningParameters().setPinned(true);
         planningInfo2.getPlanningParameters().setPublished(false);
 
-        client.applyPlanning(Arrays.asList(planningInfo1, planningInfo2));
+        client.applyPlanning(Arrays.asList(planningInfo1, planningInfo2), "planning_user");
     }
 
     private ProcessRuntimeIntegrationClient newClient() {
@@ -63,7 +63,7 @@ public class ProcessRuntimeIntegrationClientImplTest {
                                                                            "wbadmin");
     }
 
-    private static String CONTAINER_ID = "task-assignments_18.0.0-SNAPSHOT";
+    private static String CONTAINER_ID = "task-assignments_24.0.0-SNAPSHOT";
     private static String PROCESS_ID = "task-assignments.EmulatePlanningParams";
 
     @Test
@@ -119,6 +119,6 @@ public class ProcessRuntimeIntegrationClientImplTest {
             planningInfo.getPlanningParameters().setIndex(1234);
             planningInfos.add(planningInfo);
         });
-        client.applyPlanning(planningInfos);
+        client.applyPlanning(planningInfos, "planning_user");
     }
 }

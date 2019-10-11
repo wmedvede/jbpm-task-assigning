@@ -111,9 +111,9 @@ public class TaskAssigningGenerator extends LoggingMain {
         TaskAssigningSolution solution = new TaskAssigningSolution();
         solution.setId(0L);
 
-        createGroupList(solution, groupListSize);
-        createUserList(solution, userListSize);
-        createTaskList(solution, taskListSize);
+        List<Group> groupList = createGroupList(groupListSize);
+        createUserList(solution, userListSize, groupList);
+        createTaskList(solution, taskListSize, groupList);
 
         BigInteger a = AbstractSolutionImporter.factorial(taskListSize + userListSize - 1);
         BigInteger b = AbstractSolutionImporter.factorial(userListSize - 1);
@@ -127,7 +127,7 @@ public class TaskAssigningGenerator extends LoggingMain {
         return solution;
     }
 
-    private void createGroupList(TaskAssigningSolution solution, int groupListSize) {
+    private List<Group> createGroupList(int groupListSize) {
         List<Group> groupList = new ArrayList<>(groupListSize);
         groupNameGenerator.predictMaximumSizeAndReset(groupListSize);
         for (int i = 0; i < groupListSize; i++) {
@@ -138,11 +138,10 @@ public class TaskAssigningGenerator extends LoggingMain {
             logger.trace("Created Group with entityId: ({}).", groupName);
             groupList.add(group);
         }
-        solution.setGroupList(groupList);
+        return groupList;
     }
 
-    private void createUserList(TaskAssigningSolution solution, int userListSize) {
-        List<Group> groupList = solution.getGroupList();
+    private void createUserList(TaskAssigningSolution solution, int userListSize, List<Group> groupList) {
         List<User> userList = new ArrayList<>(userListSize);
         userNameGenerator.predictMaximumSizeAndReset(userListSize);
         for (int i = 0; i < userListSize; i++) {
@@ -167,9 +166,8 @@ public class TaskAssigningGenerator extends LoggingMain {
         solution.setUserList(userList);
     }
 
-    private void createTaskList(TaskAssigningSolution solution, int taskListSize) {
+    private void createTaskList(TaskAssigningSolution solution, int taskListSize, List<Group> groupList) {
         List<User> userList = solution.getUserList();
-        List<Group> groupList = solution.getGroupList();
         List<Task> taskList = new ArrayList<>(taskListSize);
 
         for (int i = 0; i < taskListSize; i++) {
