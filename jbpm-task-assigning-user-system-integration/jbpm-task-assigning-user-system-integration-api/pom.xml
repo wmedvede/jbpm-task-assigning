@@ -14,4 +14,14 @@
   <name>jBPM Task Assigning - User - System - Integration - API</name>
   <description>jBPM Task Assigning - User - System - Integration - API</description>
 
+  <dependencies>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+  </dependencies>
 </project>

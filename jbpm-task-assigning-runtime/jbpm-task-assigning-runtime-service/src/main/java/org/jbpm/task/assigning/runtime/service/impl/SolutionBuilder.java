@@ -25,6 +25,10 @@ import static org.jbpm.task.assigning.process.runtime.integration.client.TaskSta
 import static org.jbpm.task.assigning.process.runtime.integration.client.TaskStatus.Reserved;
 import static org.jbpm.task.assigning.process.runtime.integration.client.TaskStatus.Suspended;
 
+/**
+ * This class is intended for the construction of a TaskAssigningSolution given a set TaskInfo and a set of User.
+ * The solution is constructed considering the PlanningParameters for each task.
+ */
 public class SolutionBuilder {
 
     static class AssignedTask {
@@ -41,19 +45,19 @@ public class SolutionBuilder {
             this.pinned = pinned;
         }
 
-        public Task getTask() {
+        Task getTask() {
             return task;
         }
 
-        public int getIndex() {
+        int getIndex() {
             return index;
         }
 
-        public boolean isPublished() {
+        boolean isPublished() {
             return published;
         }
 
-        public boolean isPinned() {
+        boolean isPinned() {
             return pinned;
         }
     }
@@ -86,8 +90,8 @@ public class SolutionBuilder {
             } else if (Reserved == taskInfo.getStatus() || InProgress == taskInfo.getStatus() || Suspended == taskInfo.getStatus()) {
                 if (StringUtils.isNoneEmpty(taskInfo.getActualOwner())) {
                     // If actualOwner is empty the only chance is that the task was in Ready status and changed to
-                    // Suspended, since Reserved and InProgress tasks has always an owner.
-                    // Finally tasks with no actualOwner are skipped, since they'll be properly added to the
+                    // Suspended, since Reserved and InProgress tasks has always an owner in jBPM.
+                    // Finally tasks with no actualOwner (Suspended) are skipped, since they'll be properly added to the
                     // solution when they change to Ready status and the proper jBPM event is raised.
 
                     final PlanningParameters currentParameters = taskInfo.getPlanningParameters();
@@ -123,7 +127,7 @@ public class SolutionBuilder {
             List<SolutionBuilder.AssignedTask> assignedTasks = assignedTasksByUserId.get(user.getEntityId());
             if (assignedTasks != null) {
                 //add the tasks for this user.
-                List<Task> userTasks = assignedTasks.stream().map(AssignedTask::getTask).collect(Collectors.toList());
+                final List<Task> userTasks = assignedTasks.stream().map(AssignedTask::getTask).collect(Collectors.toList());
                 addTasksToUser(user, userTasks);
                 allTasks.addAll(userTasks);
             }
@@ -140,11 +144,15 @@ public class SolutionBuilder {
         return new TaskAssigningSolution(-1, allUsers, allTasks);
     }
 
+    /**
+     * Link the list of tasks to the given user. The tasks comes in the expected order.
+     * @param user the user that will "own" the tasks in the chained graph.
+     * @param tasks the tasks to link.
+     */
     static void addTasksToUser(User user, List<Task> tasks) {
         TaskOrUser previousTask = user;
-        Task nextTask;
-        for (Task task : tasks) {
-            nextTask = task;
+        for (Task nextTask : tasks) {
+            previousTask.setNextTask(nextTask);
             nextTask.setPreviousTaskOrUser(previousTask);
             previousTask = nextTask;
         }
@@ -184,13 +192,13 @@ public class SolutionBuilder {
     }
 
     static Task fromTaskInfo(TaskInfo taskInfo) {
-        Task task = new Task(taskInfo.getTaskId(),
-                             taskInfo.getProcessInstanceId(),
-                             taskInfo.getProcessId(),
-                             taskInfo.getContainerId(),
-                             taskInfo.getName(),
-                             taskInfo.getPriority(),
-                             taskInfo.getInputData());
+        final Task task = new Task(taskInfo.getTaskId(),
+                                   taskInfo.getProcessInstanceId(),
+                                   taskInfo.getProcessId(),
+                                   taskInfo.getContainerId(),
+                                   taskInfo.getName(),
+                                   taskInfo.getPriority(),
+                                   taskInfo.getInputData());
         if (taskInfo.getPotentialOwners() != null) {
             taskInfo.getPotentialOwners().forEach(potentialOwner -> {
                 if (potentialOwner.isUser()) {
@@ -204,8 +212,8 @@ public class SolutionBuilder {
     }
 
     static User fromExternalUser(org.jbpm.task.assigning.user.system.integration.User externalUser) {
-        User user = new User(externalUser.getId().hashCode(), externalUser.getId());
-        Set<Group> groups = new HashSet<>();
+        final User user = new User(externalUser.getId().hashCode(), externalUser.getId());
+        final Set<Group> groups = new HashSet<>();
         user.setGroups(groups);
         if (externalUser.getGroups() != null) {
             externalUser.getGroups().forEach(externalGroup -> groups.add(new Group(externalGroup.getId().hashCode(), externalGroup.getId())));
