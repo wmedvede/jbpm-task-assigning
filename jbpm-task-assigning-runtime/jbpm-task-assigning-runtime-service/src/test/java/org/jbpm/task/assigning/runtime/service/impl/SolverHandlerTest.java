@@ -16,10 +16,12 @@ public class SolverHandlerTest {
         WildflyUserSystemService userSystemService = new WildflyUserSystemService();
         ProcessRuntimeIntegrationClient runtimeClient = ProcessRuntimeIntegrationClientFactory.newIntegrationClient("http://localhost:8080/kie-server/services/rest/server",
                                                                                                              "wbadmin",
-                                                                                                             "wbadmin");
+                                                                                                        "wbadmin");
         SolverHandler solverHandler = new SolverHandler(solverDefRegistry.getSolverDef(),
                                                         runtimeClient,
-                                                        userSystemService);
+                                                        userSystemService,
+                                                        null);
+
 
         solverHandler.init();
         solverHandler.start();

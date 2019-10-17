@@ -37,11 +37,9 @@ public class TaskAssigningServiceImpl implements TaskAssigningService {
     @Override
     public void init() {
         SolverDef solverDef = solverDefRegistry.getSolverDef();
-        solverHandler = new SolverHandler(solverDef, runtimeClient, userSystemService);
-        executorService.execute(() -> {
-            solverHandler.init();
-            solverHandler.start();
-        });
+        solverHandler = new SolverHandler(solverDef, runtimeClient, userSystemService, executorService);
+        solverHandler.init();
+        solverHandler.start();
     }
 
     @Override
