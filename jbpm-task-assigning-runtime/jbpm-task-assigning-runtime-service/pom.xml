@@ -8,7 +8,7 @@
   <parent>
     <artifactId>jbpm-task-assigning-runtime</artifactId>
     <groupId>org.jbpm</groupId>
-    <version>7.28.0-SNAPSHOT</version>
+    <version>7.29.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>jbpm-task-assigning-runtime-service</artifactId>
@@ -22,8 +22,16 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.kie.soup</groupId>
+      <artifactId>kie-soup-commons</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.optaplanner</groupId>
       <artifactId>optaplanner-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.kie.server</groupId>
+      <artifactId>kie-server-services-common</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jbpm</groupId>

@@ -31,6 +31,17 @@ import static org.jbpm.task.assigning.process.runtime.integration.client.TaskSta
  */
 public class SolutionBuilder {
 
+    public static final Task DUMMY_TASK;
+    static {
+        DUMMY_TASK = new Task(-1,
+                              -1,
+                              "dummy-process",
+                              "dummy-container",
+                              "dummy-task",
+                              10, new HashMap<>());
+        DUMMY_TASK.getPotentialOwners().add(User.PLANNING_USER);
+    }
+
     static class AssignedTask {
 
         private Task task;
@@ -64,6 +75,7 @@ public class SolutionBuilder {
 
     private List<TaskInfo> taskInfos;
     private List<org.jbpm.task.assigning.user.system.integration.User> externalUsers;
+    private PublishedTaskCache publishedTasks;
 
     public SolutionBuilder() {
     }
@@ -75,6 +87,11 @@ public class SolutionBuilder {
 
     public SolutionBuilder withUsers(List<org.jbpm.task.assigning.user.system.integration.User> externalUsers) {
         this.externalUsers = externalUsers;
+        return this;
+    }
+
+    public SolutionBuilder withCache(PublishedTaskCache publishedTasks) {
+        this.publishedTasks = publishedTasks;
         return this;
     }
 
@@ -112,6 +129,9 @@ public class SolutionBuilder {
                         pinned = published;
                         addTaskToUser(assignedTasksByUserId, task, taskInfo.getActualOwner(), -1, published, pinned);
                     }
+                    if (published && publishedTasks != null) {
+                        publishedTasks.put(taskInfo.getTaskId());
+                    }
                 }
             }
         });
@@ -122,6 +142,9 @@ public class SolutionBuilder {
                 .map(SolutionBuilder::fromExternalUser)
                 .collect(Collectors.toMap(User::getEntityId, Function.identity()));
         usersById.put(User.PLANNING_USER.getEntityId(), User.PLANNING_USER);
+        //TODO, check if this dummy task is ok, by now if we don't add it there are problems when e.g. all tasks has
+        //been completed in the jBPM.
+        allTasks.add(DUMMY_TASK);
 
         usersById.values().forEach(user -> {
             List<SolutionBuilder.AssignedTask> assignedTasks = assignedTasksByUserId.get(user.getEntityId());

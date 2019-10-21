@@ -22,16 +22,17 @@ import static org.kie.soup.commons.validation.PortablePreconditions.checkNotNull
 
 /**
  * This class manages reading of current jBPM state and offer the results to the consumer for updating current solution
- * with the potential changes. Additionally at the first time, when the SolverRunner is not yet started, it manages
- * the initial solution recovery from the proper repository and invokes the SolverRunner start.
- * As soon the SolverRunner was started it starts the synchronization with the configured period by implementing a
+ * with the potential changes. Additionally at the first time, when the SolverExecutor is not yet started, it manages
+ * the initial solution recovery from the proper repository and invokes the SolverExecutor start.
+ * As soon the SolverExecutor was started it starts the synchronization with the configured period by implementing a
  * polling strategy.
  */
 public class SolutionSynchronizer implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SolutionSynchronizer.class);
 
-    private final SolverRunner solverRunner;
+    private final SolverExecutor solverExecutor;
+    private final PublishedTaskCache publishedTasks;
     private final ProcessRuntimeIntegrationClient runtimeClient;
     private final UserSystemService userSystemService;
     private final long period;
@@ -40,16 +41,19 @@ public class SolutionSynchronizer implements Runnable {
     private final Semaphore startPermit = new Semaphore(0);
     private final AtomicBoolean destroyed = new AtomicBoolean(false);
 
-    public SolutionSynchronizer(final SolverRunner solverRunner,
+    public SolutionSynchronizer(final SolverExecutor solverExecutor,
+                                final PublishedTaskCache publishedTasks,
                                 final ProcessRuntimeIntegrationClient runtimeClient,
                                 final UserSystemService userSystemService,
                                 final long period,
                                 final Consumer<List<TaskInfo>> taskInfoConsumer) {
-        checkNotNull("solverRunner", solverRunner);
+        checkNotNull("solverExecutor", solverExecutor);
+        checkNotNull("publishedTasks", publishedTasks);
         checkNotNull("runtimeClient", runtimeClient);
         checkNotNull("taskInfoConsumer", taskInfoConsumer);
         checkCondition("period", period > 5);
-        this.solverRunner = solverRunner;
+        this.solverExecutor = solverExecutor;
+        this.publishedTasks = publishedTasks;
         this.runtimeClient = runtimeClient;
         this.userSystemService = userSystemService;
         this.period = period;
@@ -80,37 +84,45 @@ public class SolutionSynchronizer implements Runnable {
             //wait until the start() method is invoked at any point of time.
             startPermit.acquire();
         } catch (InterruptedException e) {
-            LOGGER.debug("Solution Synchronizer was interrupted while waiting for start.", e);
+            LOGGER.error("Solution Synchronizer was interrupted while waiting for start.", e);
         }
         while (notExit()) {
             try {
                 Thread.sleep(period);
                 if (notExit()) {
-                    if (!solverRunner.isStarted()) {
+                    if (!solverExecutor.isStarted()) {
                         try {
                             LOGGER.debug("Solution Synchronizer loading initial solution.");
                             final TaskAssigningSolution recoveredSolution = recoverSolution();
-                            if (notExit() && !solverRunner.isDestroyed()) {
-                                solverRunner.start(recoveredSolution);
+                            if (notExit() && !solverExecutor.isDestroyed()) {
+                                if (!recoveredSolution.getTaskList().isEmpty()) {
+                                    solverExecutor.start(recoveredSolution);
+                                    LOGGER.debug("Initial solution was successfully loaded.");
+                                } else {
+                                    LOGGER.debug("It looks like there are no tasks for loading an initial solution at this moment. " +
+                                                         "Next attempt will be in " + period + " milliseconds");
+                                }
                             }
                         } catch (Exception e) {
-                            LOGGER.error("An error was produced during initial solution recovery", e);
+                            LOGGER.error("An error was produced during initial solution loading. " +
+                                                 "Next attempt will be in " + period + " milliseconds", e);
                         }
                     } else {
                         try {
-                            LOGGER.debug("Reading status from external repository.");
+                            LOGGER.debug("Refreshing solution status from external repository.");
                             final List<TaskInfo> updatedTaskInfos = loadTaskInfos();
                             LOGGER.debug("Status was read successful.");
                             if (notExit()) {
                                 taskInfoConsumer.accept(updatedTaskInfos);
                             }
                         } catch (Exception e) {
-                            LOGGER.error("An error was produced during solution recovery from external repository", e);
+                            LOGGER.error("An error was produced during solution status refresh from external repository" +
+                                                 "Next attempt will be in " + period + " milliseconds", e);
                         }
                     }
                 }
             } catch (InterruptedException e) {
-                LOGGER.debug("Solution Synchronizer was interrupted.", e);
+                LOGGER.error("Solution Synchronizer was interrupted.", e);
             }
         }
         LOGGER.debug("Solution Synchronizer finished");
@@ -128,6 +140,7 @@ public class SolutionSynchronizer implements Runnable {
         return new SolutionBuilder()
                 .withTasks(taskInfos)
                 .withUsers(externalUsers)
+                .withCache(publishedTasks)
                 .build();
     }
 

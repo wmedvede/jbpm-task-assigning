@@ -1,6 +1,5 @@
 package org.jbpm.task.assigning.runtime.service.impl;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 import org.jbpm.task.assigning.process.runtime.integration.client.ProcessRuntimeIntegrationClient;
@@ -8,7 +7,6 @@ import org.jbpm.task.assigning.runtime.service.SolverDef;
 import org.jbpm.task.assigning.runtime.service.SolverDefRegistry;
 import org.jbpm.task.assigning.runtime.service.TaskAssigningService;
 import org.jbpm.task.assigning.user.system.integration.UserSystemService;
-import org.optaplanner.core.impl.solver.ProblemFactChange;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,14 +38,6 @@ public class TaskAssigningServiceImpl implements TaskAssigningService {
         solverHandler = new SolverHandler(solverDef, runtimeClient, userSystemService, executorService);
         solverHandler.init();
         solverHandler.start();
-    }
-
-    @Override
-    public void addProblemFactChanges(List<ProblemFactChange<TaskAssigningService>> changes) {
-        synchronized (solverHandler) {
-            //solverHandler
-        }
-
     }
 
     @Override

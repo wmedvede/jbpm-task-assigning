@@ -64,7 +64,6 @@ public class TaskAssigningKieServerExtension implements KieServerExtension {
         //TODO, review this initialization
         WildflyUserSystemService userSystemService = getUserSystemService();
 
-        //TODO, review this initialization.
         this.executorService = new ThreadPoolExecutor(
                 3,
                 3,
@@ -141,12 +140,12 @@ public class TaskAssigningKieServerExtension implements KieServerExtension {
     }
 
     private WildflyUserSystemService getUserSystemService() {
-        //TODO, move this initialization to SPI
+        //TODO, move this initialization to SPI and add proper parametrization
         return new WildflyUserSystemService();
     }
 
     private ProcessRuntimeIntegrationClient getRuntimeIntegrationClient() {
-        //TODO, review this initialization.
+        //TODO, review this initialization and add proper parametrization.
         return ProcessRuntimeIntegrationClientFactory.newIntegrationClient("http://localhost:8080/kie-server/services/rest/server",
                                                                            "wbadmin",
                                                                            "wbadmin");
