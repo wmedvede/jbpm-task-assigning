@@ -1,14 +1,21 @@
 package org.jbpm.task.assigning.runtime.service.impl;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
+import org.jbpm.task.assigning.model.Task;
 import org.jbpm.task.assigning.model.TaskAssigningSolution;
+import org.jbpm.task.assigning.model.User;
 import org.jbpm.task.assigning.process.runtime.integration.client.ProcessRuntimeIntegrationClient;
+import org.jbpm.task.assigning.process.runtime.integration.client.TaskPlanningInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.jbpm.task.assigning.runtime.service.impl.SolutionBuilder.DUMMY_TASK;
 import static org.kie.soup.commons.validation.PortablePreconditions.checkNotNull;
 
 /**
@@ -27,6 +34,7 @@ public class SolutionProcessor implements Runnable {
     private final AtomicBoolean destroyed = new AtomicBoolean(false);
 
     private TaskAssigningSolution solution;
+    private PublishedTaskCache publishedTasks;
 
     public static class Result {
 
@@ -75,10 +83,12 @@ public class SolutionProcessor implements Runnable {
      * A null value will throw an exception.
      * @param solution a solution to process.
      */
-    public void process(final TaskAssigningSolution solution) {
+    public void process(final TaskAssigningSolution solution, final PublishedTaskCache publishedTasks) {
         checkNotNull("solution", solution);
+        checkNotNull("publishedTasks", publishedTasks);
         processing.set(true);
         this.solution = solution;
+        this.publishedTasks = publishedTasks;
         solutionResource.release();
     }
 
@@ -93,7 +103,7 @@ public class SolutionProcessor implements Runnable {
             try {
                 solutionResource.acquire();
                 if (!destroyed.get()) {
-                    process(solution);
+                    doProcess(solution, publishedTasks);
                 }
             } catch (InterruptedException e) {
                 LOGGER.error("Solution Processor was interrupted", e);
@@ -101,8 +111,54 @@ public class SolutionProcessor implements Runnable {
         }
     }
 
-    private void doProcess(final TaskAssigningSolution solution) {
+    private void doProcess(final TaskAssigningSolution solution, final PublishedTaskCache publishedTasks) {
         LOGGER.debug("Starting processing of solution: " + solution);
+        final int publishWindowSize = 4;
+        final List<TaskPlanningInfo> taskPlanningInfos = new ArrayList<>(solution.getTaskList().size());
+        List<TaskPlanningInfo> userTaskPlanningInfos;
+        Iterator<TaskPlanningInfo> userTaskPlanningInfosIt;
+        TaskPlanningInfo taskPlanningInfo;
+        int index;
+        int publishedCount;
+        for (User user : solution.getUserList()) {
+            userTaskPlanningInfos = new ArrayList<>();
+            index = 0;
+            publishedCount = 0;
+            Task nextTask = user.getNextTask();
+            while (nextTask != null) {
+                if (DUMMY_TASK.getId().equals(nextTask.getId())) {
+                    break;
+                }
+                taskPlanningInfo = new TaskPlanningInfo(nextTask.getContainerId(), nextTask.getId(), nextTask.getProcessInstanceId());
+                taskPlanningInfo.getPlanningParameters().setPublished(publishedTasks.isPublished(nextTask.getId()));
+                taskPlanningInfo.getPlanningParameters().setPinned(nextTask.isPinned());
+                taskPlanningInfo.getPlanningParameters().setAssignedUser(user.getUser().getEntityId());
+                taskPlanningInfo.getPlanningParameters().setIndex(index++);
+                userTaskPlanningInfos.add(taskPlanningInfo);
+                publishedCount += taskPlanningInfo.getPlanningParameters().isPublished() ? 1 : 0;
+                nextTask = nextTask.getNextTask();
+            }
+            userTaskPlanningInfosIt = userTaskPlanningInfos.iterator();
+            while (userTaskPlanningInfosIt.hasNext() && publishedCount <= publishWindowSize) {
+                taskPlanningInfo = userTaskPlanningInfosIt.next();
+                if (!taskPlanningInfo.getPlanningParameters().isPublished()) {
+                    taskPlanningInfo.getPlanningParameters().setPublished(true);
+                    //TODO, ojo cuando decido publicar una tareas, inmediatamente tengo que ponerla pinned
+                    //osea que tengo que programar ese cambio...
+                    //guardo en la BD pero ademas tengo q meter un problem fact change para dejar la tarea pinned ?
+                    //NO...¿?
+                    publishedCount++;
+                }
+            }
+            taskPlanningInfos.addAll(userTaskPlanningInfos);
+        }
+        //TODO set the proper user insead of "wbadmin"
+        runtimeClient.applyPlanning(taskPlanningInfos, "wbadmin");
+
+        //TODO check the error management.
+        processing.set(false);
+        resultConsumer.accept(new Result());
+
         LOGGER.debug("Solution processing finished: " + solution);
     }
 }

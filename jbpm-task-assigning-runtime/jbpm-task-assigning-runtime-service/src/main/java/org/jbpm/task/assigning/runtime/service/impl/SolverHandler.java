@@ -20,26 +20,13 @@ import org.slf4j.LoggerFactory;
 import static org.kie.soup.commons.validation.PortablePreconditions.checkNotNull;
 
 /**
- * This class handles all the work regarding with: creating/starting the solver, the processing of the produced solution,
+ * This class handles all the work regarding with: creating/starting the solver, the processing of the produced solutions
  * and the synchronization of the working solution with the changes that might be produced in the jBPM runtime. By
- * coordinating the actions produced by the SolverRunner, the SolutionProcessor and the SolutionSynchronizer.
+ * coordinating the actions produced by the SolverExecutor, the SolutionProcessor and the SolutionSynchronizer.
  */
 public class SolverHandler {
 
     private static Logger LOGGER = LoggerFactory.getLogger(SolverHandler.class);
-
-    enum STATUS {
-        /**
-         * SolverHandler was created but the Solver was not yet created/started.
-         */
-        CREATED,
-        /**
-         * The Solver was created, but not yet started.
-         */
-        INITIALIZED,
-        STARTED,
-        DESTROYED
-    }
 
     private final SolverDef solverDef;
     private final ProcessRuntimeIntegrationClient runtimeClient;
@@ -52,13 +39,12 @@ public class SolverHandler {
     private final ReentrantLock lock = new ReentrantLock();
     private TaskAssigningSolution currentSolution = null;
     private TaskAssigningSolution nextSolution = null;
+    private final PublishedTaskCache publishedTasks = new PublishedTaskCache();
 
     private Solver<TaskAssigningSolution> solver;
-    private SolverRunner solverRunner;
+    private SolverExecutor solverExecutor;
     private SolutionSynchronizer solutionSynchronizer;
     private SolutionProcessor solutionProcessor;
-
-    private STATUS status = STATUS.CREATED;
 
     public SolverHandler(final SolverDef solverDef,
                          final ProcessRuntimeIntegrationClient runtimeClient,
@@ -75,47 +61,49 @@ public class SolverHandler {
     }
 
     public void init() {
+        LOGGER.debug("Initializing SolverHandler.");
         solver = createSolver(solverDef);
-        status = STATUS.INITIALIZED;
+        LOGGER.debug("Solver was successfully created.");
     }
 
     public void start() {
-        solverRunner = new SolverRunner(solver, this::onBestSolutionChange);
-        solutionSynchronizer = new SolutionSynchronizer(solverRunner, runtimeClient, userSystemService, 10000,
-                                                        this::onSynchronizeSolution);
+        solverExecutor = new SolverExecutor(solver, this::onBestSolutionChange);
+        solutionSynchronizer = new SolutionSynchronizer(solverExecutor, publishedTasks, runtimeClient, userSystemService,
+                                                        10000, this::onSynchronizeSolution);
         solutionProcessor = new SolutionProcessor(runtimeClient, this::onSolutionProcessed);
-        executorService.execute(solverRunner); //is started by the solutionSynchronizer
+        executorService.execute(solverExecutor); //is started by the SolutionSynchronizer
         executorService.execute(solutionSynchronizer);
         executorService.execute(solutionProcessor); //automatically starts and waits for a solution to process.
         solutionSynchronizer.start();
-
-        status = STATUS.STARTED;
     }
 
     public void destroy() {
-        this.status = STATUS.DESTROYED;
-        solverRunner.destroy();
+        solverExecutor.destroy();
         solutionSynchronizer.destroy();
         solutionProcessor.destroy();
 
         executorService.shutdown();
         try {
             executorService.awaitTermination(30, TimeUnit.SECONDS);
+            LOGGER.debug("ExecutorService was successfully shutted down.");
         } catch (InterruptedException e) {
             LOGGER.debug("An exception was thrown during executionService graceful termination.", e);
             executorService.shutdownNow();
         }
     }
 
-    public void addProblemFactChanges(List<ProblemFactChange<TaskAssigningSolution>> changes) {
+    private void addProblemFactChanges(List<ProblemFactChange<TaskAssigningSolution>> changes) {
         checkNotNull("changes", changes);
-        if (!solverRunner.isStarted()) {
-            LOGGER.debug("SolverRunner has not yet been started. Changes will be discarded", changes);
+        if (!solverExecutor.isStarted()) {
+            LOGGER.debug("SolverExecutor has not yet been started. Changes will be discarded", changes);
+            return;
         }
-        if (solverRunner.isDestroyed()) {
-            LOGGER.debug("SolverRunner has been destroyed. Changes will be discarded", changes);
+        if (solverExecutor.isDestroyed()) {
+            LOGGER.debug("SolverExecutor has been destroyed. Changes will be discarded", changes);
         }
-        solverRunner.addProblemFactChanges(changes);
+        if (!changes.isEmpty()) {
+            solverExecutor.addProblemFactChanges(changes);
+        }
     }
 
     private void onBestSolutionChange(BestSolutionChangedEvent<TaskAssigningSolution> event) {
@@ -127,7 +115,7 @@ public class SolverHandler {
                 } else {
                     currentSolution = event.getNewBestSolution();
                     nextSolution = null;
-                    solutionProcessor.process(currentSolution);
+                    solutionProcessor.process(currentSolution, (PublishedTaskCache) publishedTasks.clone());
                 }
             } finally {
                 lock.unlock();
@@ -141,7 +129,8 @@ public class SolverHandler {
         try {
             if (nextSolution != null) {
                 currentSolution = nextSolution;
-                solutionProcessor.process(currentSolution);
+                nextSolution = null;
+                solutionProcessor.process(currentSolution, (PublishedTaskCache) publishedTasks.clone());
             }
         } finally {
             lock.unlock();
@@ -150,7 +139,20 @@ public class SolverHandler {
 
     private void onSynchronizeSolution(List<TaskInfo> taskInfos) {
         // 1) iterate the tasks and program the proper problem fact changes.
-
+        lock.lock();
+        try {
+            final List<ProblemFactChange<TaskAssigningSolution>> changes = new SolutionChangesBuilder()
+                    .withSolution(currentSolution)
+                    .withTasks(taskInfos)
+                    .withCache(publishedTasks)
+                    .build();
+            //TODO review if it could be better to release the lock before adding the changes.
+            if (changes.size() > 0) {
+                addProblemFactChanges(changes);
+            }
+        } finally {
+            lock.unlock();
+        }
     }
 
     private Solver<TaskAssigningSolution> createSolver(SolverDef solverDef) {

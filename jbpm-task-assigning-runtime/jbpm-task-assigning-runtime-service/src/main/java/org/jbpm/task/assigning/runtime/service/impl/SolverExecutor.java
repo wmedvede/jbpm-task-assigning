@@ -16,9 +16,9 @@ import static org.kie.soup.commons.validation.PortablePreconditions.checkNotNull
 /**
  * This class is intended to manage the solver life-cycle in a multi-threaded environment.
  */
-public class SolverRunner implements Runnable {
+public class SolverExecutor implements Runnable {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SolverRunner.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SolverExecutor.class);
 
     private final Solver<TaskAssigningSolution> solver;
     private TaskAssigningSolution solution;
@@ -28,8 +28,8 @@ public class SolverRunner implements Runnable {
     private final AtomicBoolean destroyed = new AtomicBoolean(false);
     private final Semaphore startPermit = new Semaphore(0);
 
-    public SolverRunner(final Solver<TaskAssigningSolution> solver,
-                        final SolverEventListener<TaskAssigningSolution> eventListener) {
+    public SolverExecutor(final Solver<TaskAssigningSolution> solver,
+                          final SolverEventListener<TaskAssigningSolution> eventListener) {
         checkNotNull("solver", solver);
         checkNotNull("eventListener", eventListener);
         this.solver = solver;
@@ -50,7 +50,7 @@ public class SolverRunner implements Runnable {
      */
     public void start(final TaskAssigningSolution solution) {
         if (starting.getAndSet(true)) {
-            throw new RuntimeException("SolverRunner start method was already invoked.");
+            throw new RuntimeException("SolverExecutor start method was already invoked.");
         }
         this.solution = solution;
         startPermit.release();
@@ -94,22 +94,22 @@ public class SolverRunner implements Runnable {
         if (isStarted() && !isDestroyed()) {
             solver.addProblemFactChanges(changes);
         } else {
-            throw new RuntimeException("SolverRunner wasn't yet started");
+            throw new RuntimeException("SolverExecutor wasn't yet started");
         }
     }
 
     @Override
     public void run() {
         try {
-            LOGGER.debug("SolverRunner is waiting for a solution to start with.");
+            LOGGER.debug("SolverExecutor is waiting for a solution to start with.");
             startPermit.acquire();
-            LOGGER.debug("SolverRunner will be started.");
+            LOGGER.debug("SolverExecutor will be started.");
             if (!isDestroyed()) {
                 started.set(true);
                 solver.solve(solution);
             }
         } catch (InterruptedException e) {
-            LOGGER.debug("SolverWorked was interrupted.", e);
+            LOGGER.error("SolverWorked was interrupted.", e);
         }
     }
 }
