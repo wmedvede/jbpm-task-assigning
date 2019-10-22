@@ -1,4 +1,20 @@
-package org.jbpm.task.assigning.runtime.service.impl;
+/*
+ * Copyright 2019 Red Hat, Inc. and/or its affiliates.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.jbpm.task.assigning.runtime.service;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,8 +32,8 @@ import org.jbpm.task.assigning.model.solver.realtime.RemoveTaskProblemFactChange
 import org.jbpm.task.assigning.process.runtime.integration.client.TaskInfo;
 import org.optaplanner.core.impl.solver.ProblemFactChange;
 
-import static org.jbpm.task.assigning.runtime.service.impl.SolutionBuilder.DUMMY_TASK;
-import static org.jbpm.task.assigning.runtime.service.impl.SolutionBuilder.fromTaskInfo;
+import static org.jbpm.task.assigning.runtime.service.SolutionBuilder.DUMMY_TASK;
+import static org.jbpm.task.assigning.runtime.service.SolutionBuilder.fromTaskInfo;
 
 public class SolutionChangesBuilder {
 
@@ -111,8 +127,8 @@ public class SolutionChangesBuilder {
                     if (task == null) {
                         // the task was created, eventually assigned and started etc. completely outside of the planner.
                         // if (taskInfo.getActualOwner() == null) {
-                            // do nothing, the task was assigned to nobody. So it was necessary in Ready status.
-                            // it'll be added to the solution if it comes into Ready or Reserved status in a later moment.
+                        // do nothing, the task was assigned to nobody. So it was necessary in Ready status.
+                        // it'll be added to the solution if it comes into Ready or Reserved status in a later moment.
                         // }
                         if (taskInfo.getActualOwner() != null) {
                             // we add it to the solution since this assignment might affect the workload, etc., of the plan.
