@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.jbpm.task.assigning.user.system.integration.impl;
+package org.jbpm.task.assigning.runtime.service;
 
-import org.jbpm.task.assigning.user.system.integration.Group;
+public class SolverDefRegistryImpl implements SolverDefRegistry {
 
-public class GroupImpl implements Group {
+    private static final String TASK_ASSIGNING_SOLVER_ID = "jbpm-task-assigning-solver-id";
+    private static final String TASK_ASSIGNING_SOLVER_CONFIG = "org.jbpm.services.task.assigning.solverConfig";
 
-    private String id;
+    private SolverDef solverDef;
 
-    public GroupImpl(String id) {
-        this.id = id;
+    @Override
+    public void init() {
+        String solverConfig = System.getProperty(TASK_ASSIGNING_SOLVER_CONFIG, "taskAssigningSolverConfig.xml");
+        solverDef = new SolverDef(TASK_ASSIGNING_SOLVER_ID, solverConfig);
     }
 
     @Override
-    public String getId() {
-        return id;
+    public SolverDef getSolverDef() {
+        return solverDef;
     }
 }
